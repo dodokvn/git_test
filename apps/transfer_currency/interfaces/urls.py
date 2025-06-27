@@ -1,12 +1,19 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from . import views
-from .views import (
-    NotificationViewSet,
+from apps.transfer_currency.interfaces import views
+from apps.transfer_currency.interfaces.views import (
     TransactionViewSet,
     WalletCreateView,
     WalletViewSet,
+    NotificationViewSet,
+    HomeView,
+    DashboardView,
+    ImmediateTransferView,
+    ScheduleTransferView,
+    TransactionDetailView,
+    NotificationListView,
+    CancelScheduledTransferView,
 )
 
 router = DefaultRouter()

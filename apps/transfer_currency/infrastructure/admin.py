@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import Notification, Transaction, Wallet
+from apps.transfer_currency.infrastructure.models import (
+    Notification,
+    Transaction,
+    Wallet,
+)
 
 
 @admin.register(Wallet)

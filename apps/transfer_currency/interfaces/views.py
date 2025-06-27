@@ -12,26 +12,29 @@ from django.views.generic.detail import DetailView
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from apps.accounts.infrastructure.models import User
 
-from .forms import (
+
+from apps.transfer_currency.interfaces.forms import (
     CustomUserCreationForm,
     ImmediateTransferForm,
     ScheduledTransferForm,
     WalletCreationForm,
 )
-from transfer_currency.infrastructure.models import (
+from apps.transfer_currency.infrastructure.models import (
     Notification,
     Transaction,
     Wallet,
+    TransactionStatusChoices,
 )
-from .serializers import (
+from apps.transfer_currency.interfaces.serializers import (
     NotificationSerializer,
     TransactionSerializer,
     UserSerializer,
     WalletSerializer,
 )
-from transfer_currency.interfaces.utilis.email_utilis import send_transfer_email
-from transfer_currency.tasks import notify_sender, notify_receiver
+from apps.transfer_currency.interfaces.utilis.email_utilis import send_transfer_email
+from apps.transfer_currency.tasks import notify_sender, notify_receiver
 
 
 class HomeView(TemplateView):
@@ -72,13 +75,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         context["transactions"] = Transaction.objects.filter(
             sender_wallet=wallet
-        ).order_by("-timestamp")
+        ).order_by("-created_at")
 
         context["scheduled_transfers"] = Transaction.objects.filter(
             sender_wallet=wallet,
             status="scheduled",
             scheduled__gt=timezone.now(),
-        ).order_by("-timestamp")
+        ).order_by("-created_at")
 
         context["unread_notifications"] = Notification.objects.filter(
             user=user, is_read=False
@@ -189,7 +192,7 @@ class ScheduleTransferView(LoginRequiredMixin, CreateView):
 
 class TransactionDetailView(LoginRequiredMixin, DetailView):
     model = Transaction
-    template_name = "transaction_detail.html"
+    template_name = "transaction_details.html"
     context_object_name = "transaction"
 
     def get_queryset(self):
@@ -200,10 +203,10 @@ class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification
     template_name = "notifications.html"
     context_object_name = "notifications"
-    ordering = ["-timestamp"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
-        nots = self.request.user.notifications.all().order_by("-timestamp")
+        nots = self.request.user.notifications.all().order_by("-created_at")
         nots_copy = copy.deepcopy(list(nots))
         nots.update(is_read=True)
         return nots_copy
@@ -212,9 +215,11 @@ class NotificationListView(LoginRequiredMixin, ListView):
 class CancelScheduledTransferView(LoginRequiredMixin, View):
     def post(self, request, pk):
         tran = get_object_or_404(Transaction, pk=pk, sender_wallet__user=request.user)
-        if tran.status == "scheduled":
-            tran.status = "cancelled"
-            tran.save()
+        if tran.status == TransactionStatusChoices.SCHEDULED:
+            tran.status = (
+                TransactionStatusChoices.FAILED
+            )  # ou un autre statut selon ton intention
+
         return redirect("dashboard")
 
 
@@ -289,7 +294,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user).order_by(
-            "-timestamp"
+            "-created_at"
         )
 
     @action(detail=True, methods=["post"])

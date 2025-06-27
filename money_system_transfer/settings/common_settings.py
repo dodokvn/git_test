@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,9 +23,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_extensions",
     "django_celery_beat",
-    # "tailwind",
-    # Ce sera le nom de ton app Tailwind après l'init
-    "django_browser_reload",  # Optionnel mais utile
+    "tailwind",
+    "theme",
 ]
 
 MIDDLEWARE = [
@@ -50,7 +50,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "transfer_currency.context_processors.wallet_context",
+                "apps.transfer_currency.interfaces.context_processors.global_context",
             ],
         },
     },
@@ -84,7 +84,14 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# TAILWIND_APP_NAME = "theme"
+
+STATIC_URL = "/static/"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 CELERY_BROKER_URL = "redis://localhost:6379/0"
@@ -93,9 +100,11 @@ CELERY_ACCEPT_CONTENT = ["json"]
 
 CELERY_TASK_SERIALIZER = "json"
 
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
 
+TAILWIND_APP_NAME = "theme"  # Le nom que tu utiliseras pour ton app Tailwind
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

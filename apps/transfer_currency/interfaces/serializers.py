@@ -1,12 +1,12 @@
 # serializers.py
 from rest_framework import serializers
 
-from transfer_currency.infrastructure.models import (
+from apps.transfer_currency.infrastructure.models import (
     Notification,
     Transaction,
-    User,
     Wallet,
 )
+from apps.accounts.infrastructure.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -29,7 +29,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             "sender_wallet",
             "receiver_wallet",
             "amount",
-            "timestamp",
+            "created_at",
             "status",
         ]
 

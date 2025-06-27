@@ -3,13 +3,14 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from django.forms.widgets import DateTimeInput
 from django.utils import timezone
-
-from transfer_currency.infrastructure.models import (
-    CURRENCY_CHOICES,
+from apps.transfer_currency.infrastructure.models import (
     Transaction,
-    User,
     Wallet,
+    Notification,
+    CurrencyChoices,
 )
+from apps.accounts.infrastructure.models import User
+from apps.accounts.interfaces.forms import RegisterForm
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -22,9 +23,28 @@ class CustomUserCreationForm(UserCreationForm):
             }
         ),
     )
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-input rounded-md border-gray-300 shadow-sm",
+                "placeholder": "Enter your secret code",
+            }
+        ),
+        label="Password",
+    )
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "form-input rounded-md border-gray-300 shadow-sm",
+                "placeholder": "Enter again your secret code",
+            }
+        ),
+        label="Confirm Password",
+    )
 
     currency = forms.ChoiceField(
-        choices=CURRENCY_CHOICES,
+        choices=CurrencyChoices,
+        label="Preferred Currency",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
 
@@ -34,6 +54,7 @@ class CustomUserCreationForm(UserCreationForm):
             "username",
             "email",
             "phone_number",
+            "currency",
             "password1",
             "password2",
         ]
@@ -43,12 +64,6 @@ class CustomUserCreationForm(UserCreationForm):
                     "class": "form-input rounded-md border-gray-300 shadow-sm",
                     "placeholder": "Enter your phone number",
                 }
-            ),
-            "password1": forms.PasswordInput(
-                attrs={"class": "form-input rounded-md border-gray-300 shadow-sm"}
-            ),
-            "password2": forms.PasswordInput(
-                attrs={"class": "form-input rounded-md border-gray-300 shadow-sm"}
             ),
         }
 
@@ -96,7 +111,7 @@ class WalletCreationForm(forms.ModelForm):
 class BaseTransferForm(forms.ModelForm):
     receiver_username = forms.ModelChoiceField(
         queryset=User.objects.none(),
-        label="Recipient",
+        label="Receiver",
         widget=forms.Select(
             attrs={"class": "form-input rounded-md border-gray-300 shadow-sm"}
         ),
@@ -139,7 +154,7 @@ class BaseTransferForm(forms.ModelForm):
 
         daily_transactions = Transaction.objects.filter(
             sender_wallet__user=self.user,
-            timestamp__range=(start_of_day, end_of_day),
+            created_at__range=(start_of_day, end_of_day),
         )
 
         total_daily_amount = sum(tx.amount for tx in daily_transactions)

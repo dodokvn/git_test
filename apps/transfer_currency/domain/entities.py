@@ -17,7 +17,7 @@ class TransactionEntity:
     sender_wallet_id: int
     receiver_wallet_id: int
     amount: float
-    timestamp: datetime
+    created_at: datetime
     status: str
     scheduled: Optional[datetime] = None
     event: str = ""

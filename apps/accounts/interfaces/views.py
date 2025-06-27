@@ -3,7 +3,6 @@ from django.contrib.auth.views import LogoutView
 from django.shortcuts import render, redirect
 from django.views import View
 from django.urls import reverse_lazy
-
 from .forms import RegisterForm, LoginForm
 from django.contrib.auth import get_user_model
 

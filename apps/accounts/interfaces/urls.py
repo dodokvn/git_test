@@ -1,5 +1,6 @@
 from django.urls import path
-from accounts.interfaces.views import RegisterView, LoginView, LogoutView
+from apps.transfer_currency.interfaces.views import RegisterView, LoginView, LogoutView
+
 
 urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),

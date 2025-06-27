@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <body style="font-family: Arial; color: #333">
+    {% if success %}
+    <h3>Hello {{ receiver.username }},</h3>
+    <p>You have received a scheduled money transfer.</p>
+    <p>
+      <strong>Amount:</strong> {{ amount }} {{ currency }}<br />
+      <strong>From:</strong> {{ sender.username }}<br />
+      <strong>Reason:</strong> {{ event }}
+    </p>
+    {% else %}
+    <h3>Hello {{ sender.username }},</h3>
+    <p>Your scheduled transfer has failed due to insufficient balance.</p>
+    <p>
+      <strong>Amount:</strong> {{ amount }} {{ currency }}<br />
+      <strong>To:</strong> {{ receiver.username }}<br />
+      <strong>Reason:</strong> {{ event }}
+    </p>
+    {% endif %}
+    <p>Please log in to your account for more information.</p>
+  </body>
+</html>

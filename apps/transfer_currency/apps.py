@@ -9,6 +9,8 @@ class TransferCurrencyConfig(AppConfig):
     # default_auto_field = "django.db.models.BigAutoField"
     name = "apps.transfer_currency"
 
+
+"""""
     def ready(self):
         # Start a thread to run the scheduled transaction checker
         def run_scheduled_transactions():
@@ -25,3 +27,4 @@ class TransferCurrencyConfig(AppConfig):
         # Start the thread
         thread = threading.Thread(target=run_scheduled_transactions, daemon=True)
         thread.start()
+"""

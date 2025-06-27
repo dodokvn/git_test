@@ -1,16 +1,14 @@
 from decimal import Decimal
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from transfer_currency.domain.entities import TransactionEntity
-from django.contrib.auth import get_user_model
-from money_system_transfer.apps.accounts.infrastructure.models import User
+from django.conf import settings
 
 User = get_user_model()
 
 
-# ✅ Classes TextChoices pour les devises et statuts
 class CurrencyChoices(models.TextChoices):
     USD = "USD", "USD - US Dollar"
     EUR = "EUR", "EUR - Euro"
@@ -22,9 +20,9 @@ class TransactionStatusChoices(models.TextChoices):
     PENDING = "PENDING", "Pending"
     COMPLETED = "COMPLETED", "Completed"
     FAILED = "FAILED", "Failed"
+    SCHEDULED = "SCHEDULED", "Scheduled"  # ✅ AJOUTER
 
 
-# Taux de conversion fictifs
 CONVERSION_RATES = {
     "USD": {"USD": 1, "EUR": 0.9, "BIF": 2850, "KES": 120},
     "EUR": {"USD": 1.1, "EUR": 1, "BIF": 3150, "KES": 130},
@@ -38,14 +36,14 @@ class TimeAbstractModel(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     created_by = models.ForeignKey(
-        "User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="%(class)s_created",
     )
     deleted_by = models.ForeignKey(
-        "User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -68,7 +66,13 @@ class TimeAbstractModel(models.Model):
 
 
 class Wallet(TimeAbstractModel):
-    user = models.ForeignKey("User", on_delete=models.CASCADE)
+    class Meta:
+        app_label = "transfer_currency"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
     balance = models.DecimalField(max_digits=20, decimal_places=2)
     currency = models.CharField(max_length=10, choices=CurrencyChoices.choices)
 
@@ -88,12 +92,15 @@ class Wallet(TimeAbstractModel):
 
     def populate_wallet(self):
         self.balance = Decimal("10000.00")
-        self.currency = CurrencyChoices.USD  # Utilisation de l'enum
+        self.currency = CurrencyChoices.USD
         print(f"[WALLET INIT] Balance: {self.balance}")
         self.save()
 
 
 class Transaction(TimeAbstractModel):
+    class Meta:
+        app_label = "transfer_currency"
+
     id = models.AutoField(primary_key=True)
     sender_wallet = models.ForeignKey(
         Wallet, on_delete=models.CASCADE, related_name="sent_transactions"
@@ -102,20 +109,31 @@ class Transaction(TimeAbstractModel):
         Wallet, on_delete=models.CASCADE, related_name="received_transactions"
     )
     amount = models.DecimalField(max_digits=20, decimal_places=2)
-    timestamp = models.DateTimeField(auto_now_add=True)
     scheduled = models.DateTimeField(null=True, blank=True)
     event = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=TransactionStatusChoices.choices)
 
     def clean(self):
-        if self.amount <= 0:
+        try:
+            sender_wallet = self.sender_wallet
+        except self.__class__.sender_wallet.RelatedObjectDoesNotExist:
+            sender_wallet = None
+
+        try:
+            receiver_wallet = self.receiver_wallet
+        except self.__class__.receiver_wallet.RelatedObjectDoesNotExist:
+            receiver_wallet = None
+
+        if self.amount is not None and self.amount <= 0:
             raise ValidationError("Le montant doit être supérieur à zéro.")
-        if self.sender_wallet == self.receiver_wallet:
-            raise ValidationError(
-                "Le portefeuille source et le portefeuille cible doivent être différents."
-            )
-        if self.sender_wallet.balance < self.amount:
-            raise ValidationError("Fonds insuffisants sur le portefeuille source.")
+
+        if sender_wallet and receiver_wallet:
+            if sender_wallet == receiver_wallet:
+                raise ValidationError(
+                    "Le portefeuille source et le portefeuille cible doivent être différents."
+                )
+            if sender_wallet.balance < self.amount:
+                raise ValidationError("Fonds insuffisants sur le portefeuille source.")
 
     def __str__(self):
         return f"{self.amount} {self.sender_wallet.currency} - {self.status}"
@@ -126,7 +144,7 @@ class Transaction(TimeAbstractModel):
             sender_wallet_id=self.sender_wallet.id,
             receiver_wallet_id=self.receiver_wallet.id,
             amount=float(self.amount),
-            timestamp=self.timestamp,
+            created_at=self.created_at,
             scheduled=self.scheduled,
             event=self.event,
             status=self.status,
@@ -138,8 +156,11 @@ class Transaction(TimeAbstractModel):
 
 
 class Notification(TimeAbstractModel):
+    class Meta:
+        app_label = "transfer_currency"
+
     user = models.ForeignKey(
-        "User", on_delete=models.CASCADE, related_name="notifications"
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications"
     )
     message = models.CharField(max_length=255)
     is_read = models.BooleanField(default=False)

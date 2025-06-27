@@ -35,5 +35,5 @@ def perform_transfer(
         amount=amount,
         event=event,
         status="completed",
-        timestamp=datetime.now(),
+        created_at=datetime.now(),
     )
