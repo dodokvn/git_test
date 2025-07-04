@@ -30,9 +30,7 @@ local_settings.py
 # Node.js (si utilisé avec Tailwind CSS ou autre)
 node_modules/
 
-# fichiers générés par Tailwind CSS / Webpack (selon la config)
-theme/staticfiles/
-theme/static/
+
 
 # fichiers système
 .DS_Store
