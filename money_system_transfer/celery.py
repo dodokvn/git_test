@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
 
+
 # Définir le module de configuration Django par défaut pour 'celery'
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "money_system_transfer.settings")
 

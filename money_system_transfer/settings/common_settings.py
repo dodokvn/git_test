@@ -23,8 +23,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_extensions",
     "django_celery_beat",
-    "tailwind",
-    "theme",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -92,16 +91,13 @@ STATICFILES_DIRS = [
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-
-CELERY_BROKER_URL = "redis://localhost:6379/0"
-
+# conf celery:
+CELERY_BROKER_URL = "amqp://localhost"
 CELERY_ACCEPT_CONTENT = ["json"]
-
 CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_CACHE_BACKEND = "default"
 
-
-TAILWIND_APP_NAME = "theme"  # Le nom que tu utiliseras pour ton app Tailwind
 
 INTERNAL_IPS = [
     "127.0.0.1",

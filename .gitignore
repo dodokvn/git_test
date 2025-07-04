@@ -1,1 +1,39 @@
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# SQLite database
+*.sqlite3
+db.sqlite3
+
+# Environnements virtuels
+venv/
+.env/
+.Money_env/
+Money_env/
+test-env/  # Environnement virtuel virtualenvwrapper
+
+# Logs
+*.log
+
+# Django static and media files
+/staticfiles/
+/media/
+
+# Fichiers de configuration locaux et secrets
+*.env
+**/local_settings.py
+local_settings.py
+
+# Node.js (si utilisé avec Tailwind CSS ou autre)
+node_modules/
+
+# fichiers générés par Tailwind CSS / Webpack (selon la config)
+theme/staticfiles/
+theme/static/
+
+# fichiers système
+.DS_Store
+Thumbs.db

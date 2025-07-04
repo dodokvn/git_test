@@ -4,6 +4,19 @@ from apps.transfer_currency.infrastructure.models import (
     Transaction,
     Wallet,
 )
+from django_celery_beat.models import (
+    PeriodicTask,
+    IntervalSchedule,
+    CrontabSchedule,
+    ClockedSchedule,
+)
+from django_celery_results.models import TaskResult
+
+admin.site.register(TaskResult)
+admin.site.register(PeriodicTask)
+admin.site.register(IntervalSchedule)
+admin.site.register(CrontabSchedule)
+admin.site.register(ClockedSchedule)
 
 
 @admin.register(Wallet)

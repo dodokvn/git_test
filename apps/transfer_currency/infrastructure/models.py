@@ -9,18 +9,18 @@ from django.conf import settings
 User = get_user_model()
 
 
+class TransactionStatusChoices(models.TextChoices):
+    PENDING = "PENDING", "Pending"
+    COMPLETED = "COMPLETED", "Completed"
+    FAILED = "FAILED", "Failed"
+    SCHEDULED = "SCHEDULED", "Scheduled"
+
+
 class CurrencyChoices(models.TextChoices):
     USD = "USD", "USD - US Dollar"
     EUR = "EUR", "EUR - Euro"
     BIF = "BIF", "BIF - Burundian Franc"
     KES = "KES", "KES - Kenyan Shilling"
-
-
-class TransactionStatusChoices(models.TextChoices):
-    PENDING = "PENDING", "Pending"
-    COMPLETED = "COMPLETED", "Completed"
-    FAILED = "FAILED", "Failed"
-    SCHEDULED = "SCHEDULED", "Scheduled"  # ✅ AJOUTER
 
 
 CONVERSION_RATES = {
@@ -66,8 +66,6 @@ class TimeAbstractModel(models.Model):
 
 
 class Wallet(TimeAbstractModel):
-    class Meta:
-        app_label = "transfer_currency"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -75,6 +73,9 @@ class Wallet(TimeAbstractModel):
     )
     balance = models.DecimalField(max_digits=20, decimal_places=2)
     currency = models.CharField(max_length=10, choices=CurrencyChoices.choices)
+
+    class Meta:
+        app_label = "transfer_currency"
 
     @staticmethod
     def get_converted_amount(
@@ -98,8 +99,6 @@ class Wallet(TimeAbstractModel):
 
 
 class Transaction(TimeAbstractModel):
-    class Meta:
-        app_label = "transfer_currency"
 
     id = models.AutoField(primary_key=True)
     sender_wallet = models.ForeignKey(
@@ -112,6 +111,9 @@ class Transaction(TimeAbstractModel):
     scheduled = models.DateTimeField(null=True, blank=True)
     event = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=TransactionStatusChoices.choices)
+
+    class Meta:
+        app_label = "transfer_currency"
 
     def clean(self):
         try:

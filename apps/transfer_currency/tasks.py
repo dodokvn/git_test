@@ -10,7 +10,7 @@ import json
 def notify_sender(user_email, amount, recipient_name):
     send_mail(
         "Money Sent",
-        f"You sent {amount} to {recipient_name} at {now()}",
+        print(f"You sent {amount} to {recipient_name} at {now()}"),
         "no-reply@yourapp.com",
         [user_email],
     )
@@ -20,7 +20,7 @@ def notify_sender(user_email, amount, recipient_name):
 def notify_receiver(receiver_email, amount, sender_name):
     send_mail(
         "Money Received",
-        f"You received {amount} from {sender_name} at {now()}",
+        print(f"You received {amount} from {sender_name} at {now()}"),
         "no-reply@yourapp.com",
         [receiver_email],
     )
